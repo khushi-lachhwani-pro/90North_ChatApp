@@ -14,10 +14,17 @@ const AppNavigator = () => {
             <Stack.Navigator initialRouteName="SetUsername">
                 <Stack.Screen name="SetUsername"
                     component={SetUsernameScreen}
-                    options={{ headerTitle: 'Register For Chat App' }}
+                    options={{ headerShown: false }}
                 />
-                <Stack.Screen name="RoomsList" component={RoomsListScreen} options={{ headerTitle: 'Rooms List' }} />
-                <Stack.Screen name="CreateRoom" component={CreateRoomScreen} />
+                <Stack.Screen
+                    name="RoomsList"
+                    component={RoomsListScreen}
+                    options={{
+                        headerTitle: 'Chat Rooms',
+                        headerShadowVisible: false
+                    }}
+                />
+                <Stack.Screen name="CreateRoom" component={CreateRoomScreen} options={{ headerShown: false }}/>
                 <Stack.Screen name="Chat" component={ChatScreen} />
             </Stack.Navigator>
         </NavigationContainer>

@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
 const WS_URL = 'wss://chat-api-k4vi.onrender.com/ws';
 const API_URL = 'https://chat-api-k4vi.onrender.com';
 
-export default function ChatScreen({ navigation, route }) {
+export default function ChatScreen({ navigation, route }: any) {
     const { roomId, roomName } = route.params;
-    const [messages, setMessages] = useState([]);
+    const [messages, setMessages] = useState<any>([]);
     const [newMessage, setNewMessage] = useState('');
-    const socketRef = useRef(null);
+    const socketRef = useRef<any>(null);
     const [username, setUsername] = useState('');
     const [loading, setLoading] = useState(true);
 
@@ -22,6 +22,14 @@ export default function ChatScreen({ navigation, route }) {
         fetchUsername();
     }, []);
 
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('beforeRemove', (e: any) => {
+            e.preventDefault(); // Prevent default back action
+            navigation.navigate('RoomsList'); // Navigate to the Rooms List instead
+        });
+
+        return unsubscribe;
+    }, [navigation]);
     useEffect(() => {
         const setupWebSocket = async () => {
             if (socketRef.current) {
@@ -39,7 +47,7 @@ export default function ChatScreen({ navigation, route }) {
 
             ws.onmessage = (event) => {
                 const data = JSON.parse(event.data);
-                setMessages((prev) => {
+                setMessages((prev: any) => {
                     if (data.event === 'message' && data.message?.content?.trim()) {
                         return [...prev, {
                             content: data.message.content,
@@ -96,11 +104,12 @@ export default function ChatScreen({ navigation, route }) {
 
     const sendMessage = async () => {
         if (!newMessage.trim()) return;
-        
+
         if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
             socketRef.current.send(JSON.stringify({ event: 'message', content: newMessage, sender: username }));
             setNewMessage('');
         } else {
+            Alert.alert('Error', 'connection Error . Try Again after some time');    
             console.error("WebSocket is not connected.");
         }
     };
@@ -125,7 +134,7 @@ export default function ChatScreen({ navigation, route }) {
                             <Text style={[styles.sender, isMyMessage ? { color: 'white' } : { color: 'black' }]}>
                                 {item.sender}:
                             </Text>
-                            <Text style={[styles.message, isMyMessage ? { color: 'white' } : { color: 'black' }]}>
+                            <Text style={[isMyMessage ? { color: 'white' } : { color: 'black' }]}>
                                 {item.content}
                             </Text>
                         </View>
@@ -154,14 +163,14 @@ const styles = StyleSheet.create({
     container: { flex: 1, padding: 10, backgroundColor: '#f5f5f5' },
     messageContainer: { borderRadius: 10, marginVertical: 5 },
     loadingText: { textAlign: 'center', fontSize: 16, color: '#666', marginTop: 20 },
-    myMessage: { alignSelf: 'flex-end', backgroundColor: '#007bff', padding: 10, borderRadius: 10 },
+    myMessage: { alignSelf: 'flex-end', backgroundColor: 'black', padding: 10, borderRadius: 10 },
     otherMessage: { alignSelf: 'flex-start', backgroundColor: 'white', padding: 10, borderRadius: 10 },
     emptyContainer: { alignItems: 'center', justifyContent: 'center', padding: 20 },
     emptyText: { fontSize: 16, color: '#888', fontStyle: 'italic' },
     sender: { fontWeight: 'bold', marginBottom: 3 },
     inputContainer: { flexDirection: 'row', padding: 10, backgroundColor: 'white', borderTopWidth: 1, borderColor: '#ccc' },
     input: { flex: 1, padding: 10, borderWidth: 1, borderColor: '#ccc', borderRadius: 5 },
-    sendButton: { backgroundColor: '#007bff', padding: 10, borderRadius: 5, marginLeft: 5 },
+    sendButton: { backgroundColor: 'black', padding: 10, borderRadius: 5, marginLeft: 5 },
     sendText: { color: 'white', fontWeight: 'bold' },
     systemMessage: { textAlign: 'center', fontSize: 14, color: '#555', fontStyle: 'italic', marginVertical: 5 }
 });

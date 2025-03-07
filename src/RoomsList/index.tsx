@@ -1,16 +1,28 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import {
-  View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Alert
-} from 'react-native';
+import React, { useState, useCallback, useEffect } from 'react';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
+import AntDesign from 'react-native-vector-icons/AntDesign';
+import moment from 'moment-timezone';
+import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
 
 const API_URL = 'https://chat-api-k4vi.onrender.com/';
 
 export default function RoomsListScreen({ navigation }: any) {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity style={{ padding: 10 }} onPress={() => navigation.navigate('CreateRoom')}>
+          <AntDesign name="pluscircle" size={30} color="black" />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation]);
 
   useFocusEffect(
     useCallback(() => {
@@ -31,10 +43,10 @@ export default function RoomsListScreen({ navigation }: any) {
     }
   };
 
-  const handleJoinRoom = async (roomId: string, roomName: string) => {
+  const handleJoinRoom = async (roomId: number, roomName: string) => {
     try {
       await AsyncStorage.multiSet([
-        ['roomId', roomId],
+        ['roomId', roomId.toString()],
         ['roomName', roomName],
       ]);
       navigation.navigate('Chat', { roomId, roomName });
@@ -43,37 +55,45 @@ export default function RoomsListScreen({ navigation }: any) {
     }
   };
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchRooms();
+    setRefreshing(false);
+  };
+
 
   return (
     <View style={styles.container}>
-      {/* <Text style={styles.title}>Available Chat Rooms</Text> */}
-
       {loading ? (
-        <ActivityIndicator size="large" color="#007bff" />
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color="black" />
+        </View>
       ) : (
         <FlatList
           data={rooms}
-          keyExtractor={(item:any) => item.id.toString()}
+          showsVerticalScrollIndicator={false}
+          keyExtractor={(item: any) => item.id.toString()}
+          refreshing={refreshing}
+          onRefresh={onRefresh}
           renderItem={({ item }) => (
             <TouchableOpacity
               style={styles.roomItem}
               onPress={() => handleJoinRoom(item.id, item.name)}
             >
-              <Text style={styles.roomName}>{item.name}</Text>
-              <Text style={styles.joinText}>Join</Text>
+              <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+                <FontAwesome6 name='users-line' size={25} color={'#bcbcbc'}/>
+              </View>
+              <View style={{padding:10,flex:1}}>
+                <Text style={styles.roomName}>{item.name}</Text>
+                <Text style={styles.roomDate}>
+                  {moment(item?.created_at).format('DD-MM-YYYY HH:mm')}
+                </Text>
+              </View>
             </TouchableOpacity>
           )}
           ListEmptyComponent={<Text style={styles.noRooms}>No rooms available</Text>}
         />
       )}
-
-      <TouchableOpacity
-        style={[styles.createRoomButton, loading && styles.disabledButton]}
-        onPress={() => !loading && navigation.navigate('CreateRoom')}
-        disabled={loading}
-      >
-        <Text style={styles.createRoomText}>Create Room</Text>
-      </TouchableOpacity>
     </View>
   );
 }
@@ -81,52 +101,35 @@ export default function RoomsListScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: '#f5f5f5',
+    padding: 5
   },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 20,
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   roomItem: {
     backgroundColor: 'white',
-    padding: 15,
-    borderRadius: 8,
-    marginBottom: 10,
+    borderBottomColor: '#ccc',
+    borderBottomWidth: 0.3,
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    elevation: 3,
-  },
+    gap: 10,
+    padding: 10,},
   roomName: {
+    flex:1,
     fontSize: 18,
+    fontWeight: '500',
     color: '#333',
   },
-  joinText: {
-    color: '#007bff',
-    fontWeight: 'bold',
+  roomDate: {
+    color: '#bcbcbc',
+    fontStyle: 'italic',
+    marginTop: 5,
   },
   noRooms: {
     textAlign: 'center',
     fontSize: 16,
     color: '#888',
     marginTop: 20,
-  },
-  createRoomButton: {
-    marginTop: 20,
-    backgroundColor: '#007bff',
-    padding: 15,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  createRoomText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  disabledButton: {
-    backgroundColor: '#a0a0a0',
   },
 });

@@ -30,6 +30,9 @@
       "@components/*": [
         "components/*"
       ],
+      "@Components/*": [
+        "Components/*"
+      ],
       "@components": [
         "components"
       ],

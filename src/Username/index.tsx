@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Image } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import LabelText from 'Components/Text/LabelText';
+import FormTextField from 'Components/Text/FormTextField';
+import ChatApp1 from '@assets/Images/Chatapp1.png';
 
 const API_URL = 'https://chat-api-k4vi.onrender.com/';
 
@@ -32,7 +35,7 @@ export default function SetUsernameScreen({ navigation }: any) {
             if (response.data && response.data.id) {
                 await AsyncStorage.setItem('userId', response.data.id.toString());
                 await AsyncStorage.setItem('username', response.data.username);
-                navigation.navigate('RoomsList');
+                navigation.replace('RoomsList');
             } else {
                 Alert.alert('Error', 'Failed to register username');
             }
@@ -44,99 +47,79 @@ export default function SetUsernameScreen({ navigation }: any) {
         }
     };
 
+
     return (
         <View style={styles.container}>
-            <View style={styles.card}>
-                <Text style={styles.title}>Welcome to Chat App</Text>
-                <Text style={styles.label}>Enter your username:</Text>
-                <TextInput
-                    style={[styles.input, error ? styles.inputError : {}]}
-                    placeholder="Enter your username"
-                    value={username}
-                    onChangeText={(text) => {
-                        setUsername(text);
-                        setError('');
-                    }}
-                    autoCapitalize="none"
-                    maxLength={50} // Prevent input beyond 50 characters
+            <View style={{ flex: 1 }}>
+                <Image
+                    source={ChatApp1}
+                    style={{ width: '100%', height: '100%', resizeMode: 'cover' }}
                 />
+            </View>
+
+
+            <View style={styles.card}>
+
+                <LabelText text='Welcome to Chat App' styleProps={{ color: 'white', fontWeight: '700', textAlign: 'center', fontSize: 20 }} />
+                <LabelText text='Set Your Username :' styleProps={{ color: 'white', fontWeight: '700', fontSize: 20 }} />
+                <FormTextField
+                    style={{ borderWidth: 1, borderColor: 'white', paddingHorizontal: 10, color: 'white', borderRadius: 10 }}
+                    value={username}
+                    placeholder='Enter your username'
+                    placeholderTextColor={'white'}
+                    onChangeText={(text) => (setUsername(text))} />
                 {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
                 <TouchableOpacity
-                    style={[styles.button, loading ? styles.buttonDisabled : {}]}
+                    style={[styles.button]}
                     onPress={handleSetUsername}
                     disabled={loading}
                 >
-                    {loading ? <ActivityIndicator color="white" /> : <Text style={styles.buttonText}>Register</Text>}
+                    {loading ? (
+                        <ActivityIndicator color="black" />
+                    ) : (
+                        <LabelText text="Register" styleProps={{ color: 'black', fontWeight: '700' }} />
+                    )}
                 </TouchableOpacity>
+
             </View>
+
+
+
         </View>
+
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 20,
-        backgroundColor: '#f5f5f5',
-    },
-    card: {
-        width: '100%',
-        maxWidth: 400,
         backgroundColor: 'white',
-        padding: 20,
-        borderRadius: 10,
-        shadowColor: '#000',
-        shadowOpacity: 0.1,
-        shadowOffset: { width: 0, height: 4 },
-        elevation: 5,
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 20,
-        color: '#333',
-        textAlign: 'center',
-    },
-    label: {
-        fontSize: 18,
-        marginBottom: 10,
-        color: '#666',
-        textAlign: 'center',
-    },
-    input: {
-        width: '100%',
-        padding: 12,
-        borderWidth: 1,
-        borderColor: '#aaa',
-        borderRadius: 8,
-        backgroundColor: '#fff',
-        marginBottom: 10,
-        fontSize: 16,
-    },
-    inputError: {
-        borderColor: 'red',
+        justifyContent: 'flex-end',
     },
     errorText: {
         color: 'red',
         fontSize: 14,
-        marginBottom: 10,
+        marginTop: 5,
+    },
+    card: {
+        height: '50%',
+        backgroundColor: 'black',
+        padding: 20,
+        gap: 10,
+        justifyContent: 'center',
     },
     button: {
-        width: '100%',
-        backgroundColor: '#007bff',
-        padding: 15,
+        backgroundColor: 'white',
+        padding: 5,
         borderRadius: 8,
         alignItems: 'center',
+        width: '100%',
     },
     buttonText: {
-        color: 'white',
-        fontSize: 18,
+        color: 'black',
         fontWeight: 'bold',
     },
-    buttonDisabled: {
-        backgroundColor: '#aaa',
-    },
 });
+
+
